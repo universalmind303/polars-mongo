@@ -43,6 +43,7 @@ impl MongoScan {
         Ok(())
     }
 }
+
 impl AnonymousScan for MongoScan {
     fn scan(&self, scan_opts: AnonymousScanOptions) -> Result<DataFrame> {
         let projection = scan_opts.output_schema.clone().map(|schema| {
@@ -56,7 +57,6 @@ impl AnonymousScan for MongoScan {
         let mut find_options = FindOptions::builder().limit(self.n_rows.map(|n| n as i64)).build();
         find_options.projection = projection;
         
-        println!("scan options = {:#?}", scan_opts);
         let schema = scan_opts.output_schema.unwrap_or(scan_opts.schema);
         let n_rows = self.n_rows.unwrap_or(10000);
 
@@ -96,7 +96,6 @@ impl AnonymousScan for MongoScan {
             .collect();
 
         let schema = infer_schema(inferable.into_iter(), 100);
-        println!("{:#?}", schema);
         Ok(schema)
     }
 }
@@ -118,7 +117,7 @@ fn main() {
 
     let df = LazyFrame::anonymous_scan(Arc::new(f), args)
         .unwrap()
-        .select([col("block_hash"), col("gas_price").max()])
+        .select([col("name"), col("value").max()])
         .collect()
         .unwrap();
 

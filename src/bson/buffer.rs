@@ -1,8 +1,8 @@
 use crate::conversion::*;
 use mongodb::bson::Bson;
 use num::traits::NumCast;
-use polars::prelude::*;
 use polars::export::arrow::types::NativeType;
+use polars::prelude::*;
 
 pub(crate) fn init_buffers(
     schema: &polars::prelude::Schema,
@@ -11,21 +11,21 @@ pub(crate) fn init_buffers(
     schema
         .iter()
         .map(|(name, dtype)| {
-            let builder = match dtype {
-                &DataType::Boolean => Buffer::Boolean(BooleanChunkedBuilder::new(name, capacity)),
-                &DataType::Int32 => Buffer::Int32(PrimitiveChunkedBuilder::new(name, capacity)),
-                &DataType::Int64 => Buffer::Int64(PrimitiveChunkedBuilder::new(name, capacity)),
-                &DataType::UInt32 => Buffer::UInt32(PrimitiveChunkedBuilder::new(name, capacity)),
-                &DataType::UInt64 => Buffer::UInt64(PrimitiveChunkedBuilder::new(name, capacity)),
-                &DataType::Float32 => Buffer::Float32(PrimitiveChunkedBuilder::new(name, capacity)),
-                &DataType::Float64 => Buffer::Float64(PrimitiveChunkedBuilder::new(name, capacity)),
-                &DataType::Utf8 => {
+            let builder = match &dtype {
+                DataType::Boolean => Buffer::Boolean(BooleanChunkedBuilder::new(name, capacity)),
+                DataType::Int32 => Buffer::Int32(PrimitiveChunkedBuilder::new(name, capacity)),
+                DataType::Int64 => Buffer::Int64(PrimitiveChunkedBuilder::new(name, capacity)),
+                DataType::UInt32 => Buffer::UInt32(PrimitiveChunkedBuilder::new(name, capacity)),
+                DataType::UInt64 => Buffer::UInt64(PrimitiveChunkedBuilder::new(name, capacity)),
+                DataType::Float32 => Buffer::Float32(PrimitiveChunkedBuilder::new(name, capacity)),
+                DataType::Float64 => Buffer::Float64(PrimitiveChunkedBuilder::new(name, capacity)),
+                DataType::Utf8 => {
                     Buffer::Utf8(Utf8ChunkedBuilder::new(name, capacity, capacity * 5))
                 }
-                &DataType::Datetime(_, _) => {
+                DataType::Datetime(_, _) => {
                     Buffer::Datetime(PrimitiveChunkedBuilder::new(name, capacity))
                 }
-                &DataType::Date => Buffer::Date(PrimitiveChunkedBuilder::new(name, capacity)),
+                DataType::Date => Buffer::Date(PrimitiveChunkedBuilder::new(name, capacity)),
                 _ => Buffer::All((Vec::with_capacity(capacity), name)),
             };
             Ok((name.clone(), builder))

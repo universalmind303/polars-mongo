@@ -183,7 +183,7 @@ pub trait MongoLazyReader {
     /// println!("{df}");
     /// ```
     fn scan_mongo_collection(options: MongoScanOptions) -> Result<LazyFrame> {
-        let f = MongoScan::connect(&options.connection_str, &options.db, &options.collection)?;
+        let f = MongoScan::connect(options.connection_str, options.db, options.collection)?;
 
         let args = ScanArgsAnonymous {
             name: "MONGO SCAN",

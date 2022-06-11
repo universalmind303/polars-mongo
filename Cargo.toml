@@ -22,13 +22,13 @@ features = ["sync"]
 
 
 [dependencies.polars]
-version = "0.22.2"
+# version = "0.22.2"
 git = "https://github.com/universalmind303/polars.git"
 rev = "1ae10e90e5173d80309eee48cbee65814da15e86"
 features = ["dtype-full", "rows", "lazy"]
 
 [dependencies.polars-core]
-version = "0.22.2"
+# version = "0.22.2"
 git = "https://github.com/universalmind303/polars.git"
 rev = "1ae10e90e5173d80309eee48cbee65814da15e86"
 features = ["rows"]

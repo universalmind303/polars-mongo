@@ -35,17 +35,21 @@ impl From<&Bson> for Wrap<DataType> {
         let dt = match bson {
             Bson::Double(_) => DataType::Float64,
             Bson::String(_) => DataType::Utf8,
+
             Bson::Array(arr) => {
-                // todo! add proper inference.
-                let dt = arr
-                    .get(0)
-                    .map(|i| {
-                        let dt: Self = i.into();
+                use polars::frame::row::coerce_data_type;
+
+                let dtypes: Vec<_> = arr
+                    .iter()
+                    .map(|doc| {
+                        let dt: Self = doc.into();
                         dt.0
                     })
-                    .unwrap_or(DataType::Null);
+                    .collect();
 
-                DataType::List(Box::new(dt))
+                let dtype = coerce_data_type(&dtypes);
+
+                DataType::List(Box::new(dtype))
             }
             Bson::Boolean(_) => DataType::Boolean,
             Bson::Null => DataType::Null,
@@ -62,34 +66,35 @@ impl From<&Bson> for Wrap<DataType> {
         Wrap(dt)
     }
 }
-impl<'a> From<&'a Bson> for Wrap<AnyValue<'a>> {
-    fn from(bson: &'a Bson) -> Self {
-        let dt = match bson {
-            Bson::Double(v) => AnyValue::Float64(*v),
-            Bson::String(v) => AnyValue::Utf8(v),
-            Bson::Array(arr) => {
-                let vals: Vec<Wrap<AnyValue>> = arr.iter().map(|v| v.into()).collect();
-                // Wrap is transparent, so this is safe
-                let vals = unsafe { std::mem::transmute::<_, Vec<AnyValue>>(vals) };
-                let s = Series::new("", vals);
-                AnyValue::List(s)
-            }
-            Bson::Boolean(b) => AnyValue::Boolean(*b),
-            Bson::Null | Bson::Undefined => AnyValue::Null,
-            Bson::Int32(v) => AnyValue::Int32(*v),
-            Bson::Int64(v) => AnyValue::Int64(*v),
-            Bson::Timestamp(v) => AnyValue::Utf8Owned(format!("{:#?}", v)),
-            Bson::Binary(b) => {
-                let s = Series::new("", &b.bytes);
-                AnyValue::List(s)
-            }
-            Bson::ObjectId(oid) => AnyValue::Utf8Owned(oid.to_string()),
-            Bson::Symbol(s) => AnyValue::Utf8Owned(s.to_string()),
-            v => AnyValue::Utf8Owned(format!("{:#?}", v)),
-        };
-        Wrap(dt)
-    }
-}
+
+// impl<'a> From<&'a Bson> for Wrap<AnyValue<'a>> {
+//     fn from(bson: &'a Bson) -> Self {
+//         let dt = match bson {
+//             Bson::Double(v) => AnyValue::Float64(*v),
+//             Bson::String(v) => AnyValue::Utf8(v),
+//             Bson::Array(arr) => {
+//                 let vals: Vec<Wrap<AnyValue>> = arr.iter().map(|v| v.into()).collect();
+//                 // Wrap is transparent, so this is safe
+//                 let vals = unsafe { std::mem::transmute::<_, Vec<AnyValue>>(vals) };
+//                 let s = Series::new("", vals);
+//                 AnyValue::List(s)
+//             }
+//             Bson::Boolean(b) => AnyValue::Boolean(*b),
+//             Bson::Null | Bson::Undefined => AnyValue::Null,
+//             Bson::Int32(v) => AnyValue::Int32(*v),
+//             Bson::Int64(v) => AnyValue::Int64(*v),
+//             Bson::Timestamp(v) => AnyValue::Utf8Owned(format!("{:#?}", v)),
+//             Bson::Binary(b) => {
+//                 let s = Series::new("", &b.bytes);
+//                 AnyValue::List(s)
+//             }
+//             Bson::ObjectId(oid) => AnyValue::Utf8Owned(oid.to_string()),
+//             Bson::Symbol(s) => AnyValue::Utf8Owned(s.to_string()),
+//             v => AnyValue::Utf8Owned(format!("{:#?}", v)),
+//         };
+//         Wrap(dt)
+//     }
+// }
 
 impl<'a> From<Bson> for Wrap<AnyValue<'a>> {
     fn from(bson: Bson) -> Self {
@@ -108,9 +113,57 @@ impl<'a> From<Bson> for Wrap<AnyValue<'a>> {
             Bson::Int32(v) => AnyValue::Int32(v),
             Bson::Int64(v) => AnyValue::Int64(v),
             Bson::Timestamp(v) => AnyValue::Utf8Owned(format!("{:#?}", v)),
+            Bson::DateTime(dt) => {
+                AnyValue::Datetime(dt.timestamp_millis(), TimeUnit::Milliseconds, &None)
+            }
             Bson::Binary(b) => {
                 let s = Series::new("", &b.bytes);
                 AnyValue::List(s)
+            }
+            Bson::ObjectId(oid) => AnyValue::Utf8Owned(oid.to_string()),
+            Bson::Symbol(s) => AnyValue::Utf8Owned(s.to_string()),
+            v => AnyValue::Utf8Owned(format!("{:#?}", v)),
+        };
+        Wrap(dt)
+    }
+}
+
+impl<'a, 'b> From<&'b Bson> for Wrap<AnyValue<'a>> {
+    fn from(bson: &'b Bson) -> Self {
+        let dt = match bson {
+            Bson::Double(v) => AnyValue::Float64(*v),
+            Bson::String(v) => AnyValue::Utf8Owned(v.clone()),
+            Bson::Array(arr) => {
+                let vals: Vec<Wrap<AnyValue>> = arr.iter().map(|v| v.into()).collect();
+                // Wrap is transparent, so this is safe
+                let vals = unsafe { std::mem::transmute::<_, Vec<AnyValue>>(vals) };
+                let s = Series::new("", vals);
+                AnyValue::List(s)
+            }
+            Bson::Boolean(b) => AnyValue::Boolean(*b),
+            Bson::Null | Bson::Undefined => AnyValue::Null,
+            Bson::Int32(v) => AnyValue::Int32(*v),
+            Bson::Int64(v) => AnyValue::Int64(*v),
+            Bson::Timestamp(v) => AnyValue::Utf8Owned(format!("{:#?}", v)),
+            Bson::Binary(b) => {
+                let s = Series::new("", &b.bytes);
+                AnyValue::List(s)
+            }
+            Bson::DateTime(dt) => {
+                AnyValue::Datetime(dt.timestamp_millis(), TimeUnit::Milliseconds, &None)
+            }
+            Bson::Document(doc) => {
+                let vals: (Vec<AnyValue>, Vec<Field>) = doc
+                    .into_iter()
+                    .map(|(key, value)| {
+                        let dt: Wrap<DataType> = value.into();
+                        let fld = Field::new(key, dt.0);
+                        let av: Wrap<AnyValue<'a>> = value.into();
+                        (av.0, fld)
+                    })
+                    .unzip();
+
+                AnyValue::StructOwned(Box::new(vals))
             }
             Bson::ObjectId(oid) => AnyValue::Utf8Owned(oid.to_string()),
             Bson::Symbol(s) => AnyValue::Utf8Owned(s.to_string()),

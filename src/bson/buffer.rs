@@ -2,12 +2,12 @@ use crate::conversion::*;
 use mongodb::bson::Bson;
 use num::traits::NumCast;
 use polars::prelude::*;
-use polars_time::prelude::utf8::infer::infer_pattern_single;
-use polars_time::prelude::utf8::infer::DatetimeInfer;
-use polars_time::prelude::utf8::Pattern;
+use polars::export::arrow::types::NativeType;
 
-use arrow::types::NativeType;
-pub(crate) fn init_buffers(schema: &polars::prelude::Schema, capacity: usize) -> Result<PlHashMap<String, Buffer>> {
+pub(crate) fn init_buffers(
+    schema: &polars::prelude::Schema,
+    capacity: usize,
+) -> Result<PlIndexMap<String, Buffer>> {
     schema
         .iter()
         .map(|(name, dtype)| {
@@ -20,19 +20,13 @@ pub(crate) fn init_buffers(schema: &polars::prelude::Schema, capacity: usize) ->
                 &DataType::Float32 => Buffer::Float32(PrimitiveChunkedBuilder::new(name, capacity)),
                 &DataType::Float64 => Buffer::Float64(PrimitiveChunkedBuilder::new(name, capacity)),
                 &DataType::Utf8 => {
-                    Buffer::Utf8(Utf8ChunkedBuilder::new(name, capacity, capacity * 25))
+                    Buffer::Utf8(Utf8ChunkedBuilder::new(name, capacity, capacity * 5))
                 }
                 &DataType::Datetime(_, _) => {
                     Buffer::Datetime(PrimitiveChunkedBuilder::new(name, capacity))
                 }
                 &DataType::Date => Buffer::Date(PrimitiveChunkedBuilder::new(name, capacity)),
-                DataType::List(dt) => {
-                    let dt = dt.as_ref();
-                    let dt = dt.clone();
-
-                    Buffer::List((Vec::new(), dt, name))
-                }
-                _ => Buffer::Utf8(Utf8ChunkedBuilder::new(name, capacity, capacity * 25)), // other => Buffer::All(Vec::new())
+                _ => Buffer::All((Vec::with_capacity(capacity), name)),
             };
             Ok((name.clone(), builder))
         })
@@ -51,8 +45,7 @@ pub(crate) enum Buffer<'a> {
     Utf8(Utf8ChunkedBuilder),
     Datetime(PrimitiveChunkedBuilder<Int64Type>),
     Date(PrimitiveChunkedBuilder<Int32Type>),
-    List((Vec<AnyValue<'a>>, DataType, &'a str)),
-    // Struct((Vec<AnyValue<'a>>, Vec<Field>, &'a str)),
+    All((Vec<AnyValue<'a>>, &'a str)),
 }
 
 impl<'a> Buffer<'a> {
@@ -68,12 +61,11 @@ impl<'a> Buffer<'a> {
             Buffer::Datetime(v) => v
                 .finish()
                 .into_series()
-                .cast(&DataType::Datetime(TimeUnit::Microseconds, None))
+                .cast(&DataType::Datetime(TimeUnit::Milliseconds, None))
                 .unwrap(),
             Buffer::Date(v) => v.finish().into_series().cast(&DataType::Date).unwrap(),
             Buffer::Utf8(v) => v.finish().into_series(),
-            Buffer::List((v, _, name)) => Series::new(name, v),
-            // Buffer::Struct((v, _, name)) => Series::new(name, v),
+            Buffer::All((vals, name)) => Series::new(name, vals),
         };
         Ok(s)
     }
@@ -90,8 +82,7 @@ impl<'a> Buffer<'a> {
             Buffer::Utf8(v) => v.append_null(),
             Buffer::Datetime(v) => v.append_null(),
             Buffer::Date(v) => v.append_null(),
-            Buffer::List((v, _, _)) => v.push(AnyValue::Null),
-            // Buffer::Struct((v, _, _)) => v.push(AnyValue::Null),
+            Buffer::All((v, _)) => v.push(AnyValue::Null),
         };
     }
     pub(crate) fn add(&mut self, value: &Bson) -> Result<()> {
@@ -137,7 +128,7 @@ impl<'a> Buffer<'a> {
                 Ok(())
             }
             Float32(buf) => {
-                let n = deserialize_number::<f32>(value);
+                let n = deserialize_float::<f32>(value);
                 match n {
                     Some(v) => buf.append_value(v),
                     None => buf.append_null(),
@@ -167,51 +158,19 @@ impl<'a> Buffer<'a> {
                 Ok(())
             }
             Datetime(buf) => {
-                let v = deserialize_datetime::<Int64Type>(value);
+                let v = deserialize_date::<i64>(value);
                 buf.append_option(v);
                 Ok(())
             }
             Date(buf) => {
-                todo!()
-                // let v = deserialize_datetime::<Int32Type>(value);
-                // buf.append_option(v);
-                // Ok(())
+                let v = deserialize_date::<i32>(value);
+                buf.append_option(v);
+                Ok(())
             }
-            List((buf, dt, _)) => {
-                todo!()
-                // match value {
-                //     Bson::Array(arr) => {
-                //         let s = if arr.is_empty() {
-                //             match dt {
-                //                 DataType::Struct(flds) => {
-                //                     let v: Vec<Series> = flds
-                //                         .iter()
-                //                         .map(|f| Series::new_empty(f.name(), f.data_type()))
-                //                         .collect();
-                //                     StructChunked::new("", &v).unwrap().into_series()
-                //                 }
-                //                 _ => Series::new_empty("", dt),
-                //             }
-                //         } else {
-                //             let values: Vec<AnyValue> = arr
-                //                 .iter()
-                //                 .map(|inner| {
-                //                     let av: Wrap<AnyValue> = inner.into();
-                //                     av.0
-                //                 })
-                //                 .collect();
-
-                //             Series::new("", values)
-                //         };
-                //         buf.push(AnyValue::List(s))
-                //     }
-                //     Bson::Binary(b) => {
-                //         let s = Series::new("", &b.bytes);
-                //         buf.push(AnyValue::List(s))
-                //     }
-                //     _ => buf.push(AnyValue::Null),
-                // };
-                // Ok(())
+            All((buf, _)) => {
+                let av: Wrap<AnyValue> = value.into();
+                buf.push(av.0);
+                Ok(())
             }
         }
     }
@@ -236,23 +195,13 @@ fn deserialize_number<T: NativeType + NumCast>(value: &Bson) -> Option<T> {
     }
 }
 
-fn deserialize_datetime<T>(value: &Bson) -> Option<T::Native>
-where
-    T: PolarsNumericType,
-    DatetimeInfer<T::Native>: TryFrom<Pattern>,
-{
-    todo!()
-    // let val = match value {
-    //     Bson::Timestamp(ts) => return num::traits::cast::<u32, T::Native>(ts.time),
-    //     Bson::DateTime(dt) => return num::traits::cast::<i64, T::Native>(dt.timestamp_millis()),
-    //     Bson::String(s) => s,
-    //     _ => return None,
-    // };
-    // match infer_pattern_single(val) {
-    //     None => None,
-    //     Some(pattern) => match DatetimeInfer::<T::Native>::try_from(pattern) {
-    //         Ok(mut infer) => infer.parse(val),
-    //         Err(_) => None,
-    //     },
-    // }
+fn deserialize_date<T: NativeType + NumCast>(value: &Bson) -> Option<T> {
+    match value {
+        Bson::Double(num) => num::traits::cast::<f64, T>(*num),
+        Bson::Int32(num) => num::traits::cast::<i32, T>(*num),
+        Bson::Int64(num) => num::traits::cast::<i64, T>(*num),
+        Bson::Boolean(b) => num::traits::cast::<i32, T>(*b as i32),
+        Bson::DateTime(dt) => num::traits::cast::<i64, T>(dt.timestamp_millis()),
+        _ => None,
+    }
 }

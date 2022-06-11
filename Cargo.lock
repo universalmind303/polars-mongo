@@ -47,8 +47,9 @@ dependencies = [
 
 [[package]]
 name = "arrow2"
-version = "0.11.2"
-source = "git+https://github.com/jorgecarleitao/arrow2?rev=2fcc522b903f9a3d161daf97c8026fc9066736ee#2fcc522b903f9a3d161daf97c8026fc9066736ee"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5feafd6df4e3f577529e6aa2b9b7cdb3c9fe8e8f66ebc8dc29abbe71a7e968f0"
 dependencies = [
  "bytemuck",
  "chrono",
@@ -61,19 +62,6 @@ dependencies = [
  "simdutf8",
  "streaming-iterator",
  "strength_reduce",
-]
-
-[[package]]
-name = "arrow2"
-version = "0.11.2"
-source = "git+https://github.com/jorgecarleitao/arrow2#7014e28de391960f9aac578eada14796bf6950d2"
-dependencies = [
- "bytemuck",
- "chrono",
- "either",
- "hash_hasher",
- "num-traits",
- "simdutf8",
 ]
 
 [[package]]
@@ -281,13 +269,12 @@ dependencies = [
 
 [[package]]
 name = "bson"
-version = "2.2.0"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f60a2c7c80a7850b56df4b8e98e8e4932c34877b8add4f13e8350499cc1e4572"
+checksum = "a24ecf39f5a314493ede1bb015984735d41aa6aedb59cafb95492d40cd893330"
 dependencies = [
  "ahash",
  "base64",
- "chrono",
  "hex",
  "indexmap",
  "lazy_static",
@@ -295,6 +282,7 @@ dependencies = [
  "serde",
  "serde_bytes",
  "serde_json",
+ "time 0.3.9",
  "uuid",
 ]
 
@@ -357,7 +345,7 @@ dependencies = [
  "libc",
  "num-integer",
  "num-traits",
- "time",
+ "time 0.1.43",
  "winapi",
 ]
 
@@ -938,9 +926,9 @@ dependencies = [
 
 [[package]]
 name = "lexical-parse-integer"
-version = "0.8.5"
+version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "125e1f93e5003d4bd89758c2ca2771bfae13632df633cde581efe07c87d354e5"
+checksum = "6d0994485ed0c312f6d965766754ea177d07f9c00c9b82a5ee62ed5b47945ee9"
 dependencies = [
  "lexical-util",
  "static_assertions",
@@ -1052,9 +1040,9 @@ checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
 
 [[package]]
 name = "memmap2"
-version = "0.5.3"
+version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "057a3db23999c867821a7a59feb06a578fcb03685e983dff90daf9e7d24ac08f"
+checksum = "d5172b50c23043ff43dd53e51392f36519d9b35a8f3a410d30ece5d1aedd58ae"
 dependencies = [
  "libc",
 ]
@@ -1082,9 +1070,9 @@ dependencies = [
 
 [[package]]
 name = "mongodb"
-version = "2.2.1"
+version = "2.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49a2fe500edae1ffc8e4bbc731e54a44638e5ec59fbff967f1cb8306867f5b53"
+checksum = "28f3943e379e9dcaaab9dc319c308a8caaf9e7ff083c6838dff740afbba59df7"
 dependencies = [
  "async-std",
  "async-std-resolver",
@@ -1096,7 +1084,6 @@ dependencies = [
  "derivative",
  "futures-core",
  "futures-executor",
- "futures-io",
  "futures-util",
  "hex",
  "hmac",
@@ -1236,6 +1223,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "num_threads"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2819ce041d2ee131036f4fc9d6ae7ae125a3a40e97ba64d04fe799ad9dabbb44"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "once_cell"
 version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1309,14 +1305,14 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "polars"
-version = "0.21.1"
-source = "git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416#6bd74b9365b99478fe61cc6859a7add30df87416"
+version = "0.22.2"
+source = "git+https://github.com/universalmind303/polars.git?rev=1ae10e90e5173d80309eee48cbee65814da15e86#1ae10e90e5173d80309eee48cbee65814da15e86"
 dependencies = [
- "polars-core 0.21.1 (git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416)",
+ "polars-core 0.22.3",
  "polars-io",
  "polars-lazy",
  "polars-ops",
- "polars-time 0.21.1 (git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416)",
+ "polars-time 0.22.2",
 ]
 
 [[package]]
@@ -1325,7 +1321,7 @@ version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6d27df11ee28956bd6f5aed54e7e05ce87b886871995e1da501134627ec89077"
 dependencies = [
- "arrow2 0.11.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "arrow2 0.11.2",
  "hashbrown 0.12.1",
  "num",
  "thiserror",
@@ -1333,10 +1329,10 @@ dependencies = [
 
 [[package]]
 name = "polars-arrow"
-version = "0.21.1"
-source = "git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416#6bd74b9365b99478fe61cc6859a7add30df87416"
+version = "0.22.2"
+source = "git+https://github.com/universalmind303/polars.git?rev=1ae10e90e5173d80309eee48cbee65814da15e86#1ae10e90e5173d80309eee48cbee65814da15e86"
 dependencies = [
- "arrow2 0.11.2 (git+https://github.com/jorgecarleitao/arrow2?rev=2fcc522b903f9a3d161daf97c8026fc9066736ee)",
+ "arrow2 0.12.0",
  "hashbrown 0.12.1",
  "num",
  "thiserror",
@@ -1350,14 +1346,14 @@ checksum = "fdf8d12cb7ec278516228fc86469f98c62ab81ca31e4e76d2c0ccf5a09c70491"
 dependencies = [
  "ahash",
  "anyhow",
- "arrow2 0.11.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "arrow2 0.11.2",
  "chrono",
  "hashbrown 0.12.1",
  "indexmap",
  "lazy_static",
  "num",
- "polars-arrow 0.21.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "polars-utils 0.21.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "polars-arrow 0.21.1",
+ "polars-utils 0.21.1",
  "rayon",
  "regex",
  "thiserror",
@@ -1365,20 +1361,20 @@ dependencies = [
 
 [[package]]
 name = "polars-core"
-version = "0.21.1"
-source = "git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416#6bd74b9365b99478fe61cc6859a7add30df87416"
+version = "0.22.3"
+source = "git+https://github.com/universalmind303/polars.git?rev=1ae10e90e5173d80309eee48cbee65814da15e86#1ae10e90e5173d80309eee48cbee65814da15e86"
 dependencies = [
  "ahash",
  "anyhow",
- "arrow2 0.11.2 (git+https://github.com/jorgecarleitao/arrow2?rev=2fcc522b903f9a3d161daf97c8026fc9066736ee)",
+ "arrow2 0.12.0",
  "chrono",
  "comfy-table",
  "hashbrown 0.12.1",
  "indexmap",
  "num",
  "once_cell",
- "polars-arrow 0.21.1 (git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416)",
- "polars-utils 0.21.1 (git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416)",
+ "polars-arrow 0.22.2",
+ "polars-utils 0.22.2",
  "rand",
  "rand_distr",
  "rayon",
@@ -1388,12 +1384,12 @@ dependencies = [
 
 [[package]]
 name = "polars-io"
-version = "0.21.1"
-source = "git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416#6bd74b9365b99478fe61cc6859a7add30df87416"
+version = "0.22.2"
+source = "git+https://github.com/universalmind303/polars.git?rev=1ae10e90e5173d80309eee48cbee65814da15e86#1ae10e90e5173d80309eee48cbee65814da15e86"
 dependencies = [
  "ahash",
  "anyhow",
- "arrow2 0.11.2 (git+https://github.com/jorgecarleitao/arrow2?rev=2fcc522b903f9a3d161daf97c8026fc9066736ee)",
+ "arrow2 0.12.0",
  "csv-core",
  "dirs",
  "lexical",
@@ -1401,10 +1397,10 @@ dependencies = [
  "memmap2",
  "num",
  "once_cell",
- "polars-arrow 0.21.1 (git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416)",
- "polars-core 0.21.1 (git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416)",
- "polars-time 0.21.1 (git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416)",
- "polars-utils 0.21.1 (git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416)",
+ "polars-arrow 0.22.2",
+ "polars-core 0.22.3",
+ "polars-time 0.22.2",
+ "polars-utils 0.22.2",
  "rayon",
  "regex",
  "simdutf8",
@@ -1412,18 +1408,18 @@ dependencies = [
 
 [[package]]
 name = "polars-lazy"
-version = "0.21.1"
-source = "git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416#6bd74b9365b99478fe61cc6859a7add30df87416"
+version = "0.22.2"
+source = "git+https://github.com/universalmind303/polars.git?rev=1ae10e90e5173d80309eee48cbee65814da15e86#1ae10e90e5173d80309eee48cbee65814da15e86"
 dependencies = [
  "ahash",
  "glob",
  "parking_lot",
- "polars-arrow 0.21.1 (git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416)",
- "polars-core 0.21.1 (git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416)",
+ "polars-arrow 0.22.2",
+ "polars-core 0.22.3",
  "polars-io",
  "polars-ops",
- "polars-time 0.21.1 (git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416)",
- "polars-utils 0.21.1 (git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416)",
+ "polars-time 0.22.2",
+ "polars-utils 0.22.2",
  "rayon",
 ]
 
@@ -1431,24 +1427,20 @@ dependencies = [
 name = "polars-mongo"
 version = "0.1.0"
 dependencies = [
- "arrow2 0.11.2 (git+https://github.com/jorgecarleitao/arrow2)",
  "mongodb",
  "num",
  "polars",
- "polars-core 0.21.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "polars-time 0.21.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "rayon",
- "serde",
- "serde_json",
+ "polars-core 0.22.3",
+ "polars-time 0.21.1",
 ]
 
 [[package]]
 name = "polars-ops"
-version = "0.21.1"
-source = "git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416#6bd74b9365b99478fe61cc6859a7add30df87416"
+version = "0.22.2"
+source = "git+https://github.com/universalmind303/polars.git?rev=1ae10e90e5173d80309eee48cbee65814da15e86#1ae10e90e5173d80309eee48cbee65814da15e86"
 dependencies = [
- "polars-arrow 0.21.1 (git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416)",
- "polars-core 0.21.1 (git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416)",
+ "polars-arrow 0.22.2",
+ "polars-core 0.22.3",
 ]
 
 [[package]]
@@ -1459,20 +1451,20 @@ checksum = "be499f73749e820f96689c5f9ec59669b7cdd551d864358e2bdaebb5944e4bfb"
 dependencies = [
  "chrono",
  "lexical",
- "polars-arrow 0.21.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "polars-core 0.21.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "polars-arrow 0.21.1",
+ "polars-core 0.21.1",
 ]
 
 [[package]]
 name = "polars-time"
-version = "0.21.1"
-source = "git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416#6bd74b9365b99478fe61cc6859a7add30df87416"
+version = "0.22.2"
+source = "git+https://github.com/universalmind303/polars.git?rev=1ae10e90e5173d80309eee48cbee65814da15e86#1ae10e90e5173d80309eee48cbee65814da15e86"
 dependencies = [
  "chrono",
  "lexical",
- "polars-arrow 0.21.1 (git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416)",
- "polars-core 0.21.1 (git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416)",
- "polars-utils 0.21.1 (git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416)",
+ "polars-arrow 0.22.2",
+ "polars-core 0.22.3",
+ "polars-utils 0.22.2",
 ]
 
 [[package]]
@@ -1487,8 +1479,8 @@ dependencies = [
 
 [[package]]
 name = "polars-utils"
-version = "0.21.1"
-source = "git+https://github.com/universalmind303/polars.git?rev=6bd74b9365b99478fe61cc6859a7add30df87416#6bd74b9365b99478fe61cc6859a7add30df87416"
+version = "0.22.2"
+source = "git+https://github.com/universalmind303/polars.git?rev=1ae10e90e5173d80309eee48cbee65814da15e86#1ae10e90e5173d80309eee48cbee65814da15e86"
 dependencies = [
  "parking_lot",
  "rayon",
@@ -2002,6 +1994,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "time"
+version = "0.3.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2702e08a7a860f005826c6815dcac101b19b5eb330c27fe4a5928fec1d20ddd"
+dependencies = [
+ "itoa",
+ "libc",
+ "num_threads",
+ "time-macros",
+]
+
+[[package]]
+name = "time-macros"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "42657b1a6f4d817cda8e7a0ace261fe0cc946cf3a80314390b22cc61ae080792"
+
+[[package]]
 name = "tinyvec"
 version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2018,9 +2028,9 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
 name = "tokio"
-version = "1.18.2"
+version = "1.19.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4903bf0427cf68dddd5aa6a93220756f8be0c34fcfa9f5e6191e103e15a31395"
+checksum = "c51a52ed6686dd62c320f9b89299e9dfb46f730c7a48e635c19f21d116cb1439"
 dependencies = [
  "bytes",
  "libc",
@@ -2036,9 +2046,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-macros"
-version = "1.7.0"
+version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b557f72f448c511a979e2564e55d74e6c4432fc96ff4f6241bc6bded342643b7"
+checksum = "9724f9a975fb987ef7a3cd9be0350edcbe130698af5b8f7a631e23d42d052484"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2058,9 +2068,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-util"
-version = "0.7.2"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f988a1a1adc2fb21f9c12aa96441da33a1728193ae0b95d2be22dbd17fcb4e5c"
+checksum = "cc463cd8deddc3770d20f9852143d50bf6094e640b485cb2e189a2099085ff45"
 dependencies = [
  "bytes",
  "futures-core",

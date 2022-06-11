@@ -7,9 +7,6 @@ license = "MIT"
 keywords = ["dataframe", "query-engine", "arrow", "polars", "mongo", "mongodb"]
 description = "Connector to read polars dataframes from mongod collections"
 
-
-
-
 [dependencies]
 polars-time = "0.21.1"
 num = "^0.4"

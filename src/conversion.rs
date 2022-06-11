@@ -67,7 +67,6 @@ impl From<&Bson> for Wrap<DataType> {
     }
 }
 
-
 impl<'a> From<Bson> for Wrap<AnyValue<'a>> {
     fn from(bson: Bson) -> Self {
         let dt = match bson {

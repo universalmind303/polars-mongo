@@ -168,20 +168,6 @@ pub struct MongoScanOptions<'a> {
 pub trait MongoLazyReader {
     /// Example
     /// scans a mongo collection into a lazyframe.
-    /// Will pushdown slice & predicate operations to mongo.
-    /// ## Example
-    /// ```rust
-    /// let df = LazyFrame::scan_mongo_collection(MongoScanOptions {
-    ///     connection_str
-    ///     db,
-    ///     collection,
-    ///     infer_schema_length: None,
-    ///     n_rows: None,
-    /// })?
-    /// .collect()?;
-    ///
-    /// println!("{df}");
-    /// ```
     fn scan_mongo_collection(options: MongoScanOptions) -> Result<LazyFrame> {
         let f = MongoScan::connect(options.connection_str, options.db, options.collection)?;
 

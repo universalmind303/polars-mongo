@@ -1,2 +1,15 @@
 target/
+**/*.rs.bk
 Cargo.lock
+node_modules/
+.yarn
+.pnp.*
+
+coverage/
+bin/
+.vscode
+*.node
+docs/
+run.js
+index.d.ts
+index.js

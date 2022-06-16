@@ -4,6 +4,8 @@ mod bson;
 mod conversion;
 pub mod prelude;
 
+use napi::bindgen_prelude::{External, Result as JsResult};
+
 use crate::bson::buffer::*;
 
 use conversion::Wrap;
@@ -18,8 +20,14 @@ use mongodb::{
 };
 use polars_core::utils::accumulate_dataframes_vertical;
 
+#[macro_use]
+extern crate napi_derive;
+
 pub struct MongoScan {
-    pub collection: Collection<Document>,
+    client_options: ClientOptions,
+    db: String,
+    collection_name: String,
+    pub collection: Option<Collection<Document>>,
     pub n_threads: Option<usize>,
     pub batch_size: Option<usize>,
     pub rechunk: bool,
@@ -35,18 +43,25 @@ impl MongoScan {
         self
     }
 
-    pub fn connect(connection_str: &str, db: &str, collection: &str) -> Result<Self> {
+    pub fn new(connection_str: String, db: String, collection: String) -> Result<Self> {
         let client_options = ClientOptions::parse(connection_str).unwrap();
 
-        let client = Client::with_options(client_options).unwrap();
-        let database = client.database(db);
-        let collection = database.collection::<Document>(collection);
         Ok(MongoScan {
-            collection,
+            client_options,
+            db,
+            collection_name: collection,
+            collection: None,
             n_threads: None,
             rechunk: false,
             batch_size: None,
         })
+    }
+
+    fn get_collection(&self) -> Collection<Document> {
+        println!("get_collection");
+        let client = Client::with_options(self.client_options.clone()).unwrap();
+        let database = client.database(&self.db);
+        database.collection::<Document>(&self.collection_name)
     }
 
     fn parse_lines<'a>(
@@ -66,6 +81,10 @@ impl MongoScan {
 
 impl AnonymousScan for MongoScan {
     fn scan(&self, scan_opts: AnonymousScanOptions) -> Result<DataFrame> {
+        println!("AnonymousScan::scan");
+
+        let collection = &self.get_collection();
+
         let projection = scan_opts.output_schema.clone().map(|schema| {
             let prj = schema
                 .iter_names()
@@ -83,7 +102,7 @@ impl AnonymousScan for MongoScan {
         // if no n_rows we need to get the count from mongo.
         let n_rows = scan_opts
             .n_rows
-            .unwrap_or_else(|| self.collection.estimated_document_count(None).unwrap() as usize);
+            .unwrap_or_else(|| collection.estimated_document_count(None).unwrap() as usize);
 
         let n_threads = self.n_threads.unwrap_or_else(|| POOL.current_num_threads());
 
@@ -100,7 +119,7 @@ impl AnonymousScan for MongoScan {
                     find_options.skip = Some(start as u64);
                     find_options.limit = Some(rows_per_thread as i64);
 
-                    let cursor = self.collection.find(None, Some(find_options));
+                    let cursor = collection.find(None, Some(find_options));
                     let mut buffers = init_buffers(schema.as_ref(), rows_per_thread)?;
 
                     self.parse_lines(cursor.unwrap(), &mut buffers)
@@ -124,12 +143,20 @@ impl AnonymousScan for MongoScan {
     }
 
     fn schema(&self, infer_schema_length: Option<usize>) -> Result<Schema> {
+        let now = std::time::Instant::now();
+        println!("infer_schema_length = {:#?}", infer_schema_length);
+        println!("AnonymousScan::schema {:#?}", now.elapsed());
+
+        let collection = self.get_collection();
+        println!("Done getting collection {:#?}", now.elapsed());
+
         let infer_options = FindOptions::builder()
             .limit(infer_schema_length.map(|i| i as i64))
             .build();
 
-        let res = self
-            .collection
+        println!("start cursor: {:#?}", now.elapsed());
+
+        let res = collection
             .find(None, Some(infer_options))
             .map_err(|err| PolarsError::ComputeError(format!("{:#?}", err).into()))?;
 
@@ -142,7 +169,13 @@ impl AnonymousScan for MongoScan {
             v.collect()
         });
 
+        println!("end cursor:  {:#?}", now.elapsed());
+        println!("start infer_schema: {:#?}", now.elapsed());
+
         let schema = infer_schema(iter, infer_schema_length.unwrap_or(1000));
+        println!("end infer_schema: {:#?}", now.elapsed());
+        println!("schema = {:#?}", schema);
+
         Ok(schema)
     }
 
@@ -157,23 +190,25 @@ impl AnonymousScan for MongoScan {
     }
 }
 
-pub struct MongoScanOptions<'a> {
-    pub connection_str: &'a str,
-    pub db: &'a str,
-    pub collection: &'a str,
-    pub infer_schema_length: Option<usize>,
-    pub n_rows: Option<usize>,
+#[napi(object)]
+pub struct MongoScanOptions {
+    pub connection_str: String,
+    pub db: String,
+    pub collection: String,
+    pub infer_schema_length: Option<i64>,
+    pub n_rows: Option<i64>,
 }
 
 pub trait MongoLazyReader {
     /// Example
     /// scans a mongo collection into a lazyframe.
     fn scan_mongo_collection(options: MongoScanOptions) -> Result<LazyFrame> {
-        let f = MongoScan::connect(options.connection_str, options.db, options.collection)?;
+        let f = MongoScan::new(options.connection_str, options.db, options.collection)?;
 
         let args = ScanArgsAnonymous {
             name: "MONGO SCAN",
-            infer_schema_length: options.infer_schema_length,
+            infer_schema_length: options.infer_schema_length.map(|l| l as usize),
+            n_rows: options.n_rows.map(|l| l as usize),
             ..ScanArgsAnonymous::default()
         };
 
@@ -182,3 +217,20 @@ pub trait MongoLazyReader {
 }
 
 impl MongoLazyReader for LazyFrame {}
+
+#[napi]
+pub fn scan_mongo_collection(options: MongoScanOptions) -> JsResult<External<LazyFrame>> {
+    let f = MongoScan::new(options.connection_str, options.db, options.collection)
+        .map_err(|e| napi::Error::from_reason(format!("{:#?}", e).to_string()))?;
+
+    let args = ScanArgsAnonymous {
+        name: "MONGO SCAN",
+        infer_schema_length: options.infer_schema_length.map(|i| i as usize),
+        ..ScanArgsAnonymous::default()
+    };
+
+    let lf = LazyFrame::anonymous_scan(Arc::new(f), args)
+        .map_err(|e| napi::Error::from_reason(format!("{:#?}", e).to_string()))?;
+
+    Ok(External::new(lf))
+}

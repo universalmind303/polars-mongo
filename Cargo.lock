@@ -48,19 +48,16 @@ dependencies = [
 [[package]]
 name = "arrow2"
 version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5feafd6df4e3f577529e6aa2b9b7cdb3c9fe8e8f66ebc8dc29abbe71a7e968f0"
+source = "git+https://github.com/jorgecarleitao/arrow2?rev=6919cc3281c3ee7dd3e973a7b303c67277458f20#6919cc3281c3ee7dd3e973a7b303c67277458f20"
 dependencies = [
  "bytemuck",
  "chrono",
- "csv-core",
  "either",
  "hash_hasher",
  "lexical-core",
  "multiversion",
  "num-traits",
  "simdutf8",
- "streaming-iterator",
  "strength_reduce",
 ]
 
@@ -369,6 +366,12 @@ checksum = "30ed07550be01594c6026cff2a1d7fe9c8f683caa798e12b68694ac9e88286a3"
 dependencies = [
  "cache-padded",
 ]
+
+[[package]]
+name = "convert_case"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fb4a24b1aaf0fd0ce8b45161144d6f42cd91677fd5940fd431183eb023b3a2b8"
 
 [[package]]
 name = "cpufeatures"
@@ -971,6 +974,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "349d5a591cd28b49e1d1037471617a32ddcda5731b99419008085f72d5a53836"
 
 [[package]]
+name = "libloading"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "efbc0f03f9a775e9f6aed295c6a1ba2253c5757a9e03d55c6caa46a681abcddd"
+dependencies = [
+ "cfg-if",
+ "winapi",
+]
+
+[[package]]
 name = "libm"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1133,6 +1146,60 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "napi"
+version = "2.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec369bd2ae196a21bb08fb53761e637862c3c0699da9cd21b6d954e32dda04b3"
+dependencies = [
+ "ctor",
+ "lazy_static",
+ "napi-sys",
+ "thread_local",
+]
+
+[[package]]
+name = "napi-build"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "882a73d9ef23e8dc2ebbffb6a6ae2ef467c0f18ac10711e4cc59c5485d41df0e"
+
+[[package]]
+name = "napi-derive"
+version = "2.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6c0308f2313ee504b032bad9c75343d967e6ba27be2e3f19e89bb0ee8786b5b0"
+dependencies = [
+ "convert_case",
+ "napi-derive-backend",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "napi-derive-backend"
+version = "1.0.33"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c97606e865ebfca1c5d0c952e34969ca26b3c8ba0c246c569a2fc945719a78ea"
+dependencies = [
+ "convert_case",
+ "once_cell",
+ "proc-macro2",
+ "quote",
+ "regex",
+ "syn",
+]
+
+[[package]]
+name = "napi-sys"
+version = "2.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "529671ebfae679f2ce9630b62dd53c72c56b3eb8b2c852e7e2fa91704ff93d67"
+dependencies = [
+ "libloading",
 ]
 
 [[package]]
@@ -1305,14 +1372,14 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "polars"
-version = "0.22.2"
-source = "git+https://github.com/universalmind303/polars.git?rev=1ae10e90e5173d80309eee48cbee65814da15e86#1ae10e90e5173d80309eee48cbee65814da15e86"
+version = "0.22.6"
+source = "git+https://github.com/pola-rs/polars.git?branch=master#4154c6af37cc366868289059f70d5146d72d5848"
 dependencies = [
- "polars-core 0.22.3",
+ "polars-core 0.22.6",
  "polars-io",
  "polars-lazy",
  "polars-ops",
- "polars-time 0.22.2",
+ "polars-time 0.22.6",
 ]
 
 [[package]]
@@ -1329,8 +1396,8 @@ dependencies = [
 
 [[package]]
 name = "polars-arrow"
-version = "0.22.2"
-source = "git+https://github.com/universalmind303/polars.git?rev=1ae10e90e5173d80309eee48cbee65814da15e86#1ae10e90e5173d80309eee48cbee65814da15e86"
+version = "0.22.6"
+source = "git+https://github.com/pola-rs/polars.git?branch=master#4154c6af37cc366868289059f70d5146d72d5848"
 dependencies = [
  "arrow2 0.12.0",
  "hashbrown 0.12.1",
@@ -1361,8 +1428,8 @@ dependencies = [
 
 [[package]]
 name = "polars-core"
-version = "0.22.3"
-source = "git+https://github.com/universalmind303/polars.git?rev=1ae10e90e5173d80309eee48cbee65814da15e86#1ae10e90e5173d80309eee48cbee65814da15e86"
+version = "0.22.6"
+source = "git+https://github.com/pola-rs/polars.git?branch=master#4154c6af37cc366868289059f70d5146d72d5848"
 dependencies = [
  "ahash",
  "anyhow",
@@ -1373,8 +1440,8 @@ dependencies = [
  "indexmap",
  "num",
  "once_cell",
- "polars-arrow 0.22.2",
- "polars-utils 0.22.2",
+ "polars-arrow 0.22.6",
+ "polars-utils 0.22.6",
  "rand",
  "rand_distr",
  "rayon",
@@ -1384,8 +1451,8 @@ dependencies = [
 
 [[package]]
 name = "polars-io"
-version = "0.22.2"
-source = "git+https://github.com/universalmind303/polars.git?rev=1ae10e90e5173d80309eee48cbee65814da15e86#1ae10e90e5173d80309eee48cbee65814da15e86"
+version = "0.22.6"
+source = "git+https://github.com/pola-rs/polars.git?branch=master#4154c6af37cc366868289059f70d5146d72d5848"
 dependencies = [
  "ahash",
  "anyhow",
@@ -1393,14 +1460,15 @@ dependencies = [
  "csv-core",
  "dirs",
  "lexical",
+ "lexical-core",
  "memchr",
  "memmap2",
  "num",
  "once_cell",
- "polars-arrow 0.22.2",
- "polars-core 0.22.3",
- "polars-time 0.22.2",
- "polars-utils 0.22.2",
+ "polars-arrow 0.22.6",
+ "polars-core 0.22.6",
+ "polars-time 0.22.6",
+ "polars-utils 0.22.6",
  "rayon",
  "regex",
  "simdutf8",
@@ -1408,18 +1476,18 @@ dependencies = [
 
 [[package]]
 name = "polars-lazy"
-version = "0.22.2"
-source = "git+https://github.com/universalmind303/polars.git?rev=1ae10e90e5173d80309eee48cbee65814da15e86#1ae10e90e5173d80309eee48cbee65814da15e86"
+version = "0.22.6"
+source = "git+https://github.com/pola-rs/polars.git?branch=master#4154c6af37cc366868289059f70d5146d72d5848"
 dependencies = [
  "ahash",
  "glob",
  "parking_lot",
- "polars-arrow 0.22.2",
- "polars-core 0.22.3",
+ "polars-arrow 0.22.6",
+ "polars-core 0.22.6",
  "polars-io",
  "polars-ops",
- "polars-time 0.22.2",
- "polars-utils 0.22.2",
+ "polars-time 0.22.6",
+ "polars-utils 0.22.6",
  "rayon",
 ]
 
@@ -1428,19 +1496,22 @@ name = "polars-mongo"
 version = "0.1.0"
 dependencies = [
  "mongodb",
+ "napi",
+ "napi-build",
+ "napi-derive",
  "num",
  "polars",
- "polars-core 0.22.3",
+ "polars-core 0.22.6",
  "polars-time 0.21.1",
 ]
 
 [[package]]
 name = "polars-ops"
-version = "0.22.2"
-source = "git+https://github.com/universalmind303/polars.git?rev=1ae10e90e5173d80309eee48cbee65814da15e86#1ae10e90e5173d80309eee48cbee65814da15e86"
+version = "0.22.6"
+source = "git+https://github.com/pola-rs/polars.git?branch=master#4154c6af37cc366868289059f70d5146d72d5848"
 dependencies = [
- "polars-arrow 0.22.2",
- "polars-core 0.22.3",
+ "polars-arrow 0.22.6",
+ "polars-core 0.22.6",
 ]
 
 [[package]]
@@ -1457,14 +1528,14 @@ dependencies = [
 
 [[package]]
 name = "polars-time"
-version = "0.22.2"
-source = "git+https://github.com/universalmind303/polars.git?rev=1ae10e90e5173d80309eee48cbee65814da15e86#1ae10e90e5173d80309eee48cbee65814da15e86"
+version = "0.22.6"
+source = "git+https://github.com/pola-rs/polars.git?branch=master#4154c6af37cc366868289059f70d5146d72d5848"
 dependencies = [
  "chrono",
  "lexical",
- "polars-arrow 0.22.2",
- "polars-core 0.22.3",
- "polars-utils 0.22.2",
+ "polars-arrow 0.22.6",
+ "polars-core 0.22.6",
+ "polars-utils 0.22.6",
 ]
 
 [[package]]
@@ -1479,8 +1550,8 @@ dependencies = [
 
 [[package]]
 name = "polars-utils"
-version = "0.22.2"
-source = "git+https://github.com/universalmind303/polars.git?rev=1ae10e90e5173d80309eee48cbee65814da15e86#1ae10e90e5173d80309eee48cbee65814da15e86"
+version = "0.22.6"
+source = "git+https://github.com/pola-rs/polars.git?branch=master#4154c6af37cc366868289059f70d5146d72d5848"
 dependencies = [
  "parking_lot",
  "rayon",
@@ -1894,12 +1965,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
-name = "streaming-iterator"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "303235c177994a476226b80d076bd333b7b560fb05bd242a10609d11b07f81f5"
-
-[[package]]
 name = "strength_reduce"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1981,6 +2046,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "thread_local"
+version = "1.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5516c27b78311c50bf42c071425c560ac799b11c30b31f87e3081965fe5e0180"
+dependencies = [
+ "once_cell",
 ]
 
 [[package]]

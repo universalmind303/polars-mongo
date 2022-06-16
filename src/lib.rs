@@ -221,7 +221,7 @@ impl MongoLazyReader for LazyFrame {}
 #[napi]
 pub fn scan_mongo_collection(options: MongoScanOptions) -> JsResult<External<LazyFrame>> {
     let f = MongoScan::new(options.connection_str, options.db, options.collection)
-        .map_err(|e| napi::Error::from_reason(format!("{:#?}", e).to_string()))?;
+        .map_err(|e| napi::Error::from_reason(format!("{:#?}", e)))?;
 
     let args = ScanArgsAnonymous {
         name: "MONGO SCAN",

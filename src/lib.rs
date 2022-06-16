@@ -230,7 +230,7 @@ pub fn scan_mongo_collection(options: MongoScanOptions) -> JsResult<External<Laz
     };
 
     let lf = LazyFrame::anonymous_scan(Arc::new(f), args)
-        .map_err(|e| napi::Error::from_reason(format!("{:#?}", e).to_string()))?;
+        .map_err(|e| napi::Error::from_reason(format!("{:#?}", e)))?;
 
     Ok(External::new(lf))
 }

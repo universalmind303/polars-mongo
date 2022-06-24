@@ -11,5 +11,4 @@ bin/
 *.node
 docs/
 run.js
-index.d.ts
-index.js
+.DS_STORE

@@ -1,0 +1,18 @@
+{
+  "name": "polars-mongo-darwin-arm64",
+  "version": "0.5.0",
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "main": "polars-mongo.darwin-arm64.node",
+  "files": [
+    "polars-mongo.darwin-arm64.node"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 16"
+  }
+}

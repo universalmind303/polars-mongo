@@ -1,0 +1,21 @@
+{
+  "name": "polars-mongo-linux-x64-gnu",
+  "version": "0.5.0",
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "main": "polars-mongo.linux-x64-gnu.node",
+  "files": [
+    "polars-mongo.linux-x64-gnu.node"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 16"
+  },
+  "libc": [
+    "glibc"
+  ]
+}

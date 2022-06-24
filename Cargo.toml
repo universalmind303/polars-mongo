@@ -5,33 +5,24 @@ edition = "2021"
 authors = ["universalmind303 <cory.grinstead@gmail.com>"]
 license = "MIT"
 keywords = ["dataframe", "query-engine", "arrow", "polars", "mongo", "mongodb"]
-description = "Connector to read polars dataframes from mongod collections"
+description = "Connector to read polars dataframes from mongodb collections"
 
 [lib]
 crate-type = ["cdylib"]
+
 [dependencies]
 polars-time = "0.21.1"
 num = "^0.4"
 napi = "2.5.0"
 napi-derive = "2.5.0"
-
 [dependencies.mongodb]
 version = "2.2.1"
 default-features = false
 features = ["sync"]
 
-
-[dependencies.polars]
-# version = "0.22.6"
+[dependencies.nodejs-polars]
 git = "https://github.com/pola-rs/polars.git"
 branch = "master"
-features = ["dtype-full", "rows", "lazy"]
-
-[dependencies.polars-core]
-# version = "0.22.6"
-git = "https://github.com/pola-rs/polars.git"
-branch = "master"
-features = ["rows"]
 
 [build-dependencies]
 napi-build = "2.0.1"

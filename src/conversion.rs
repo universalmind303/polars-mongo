@@ -1,4 +1,4 @@
-use polars::prelude::*;
+use nodejs_polars::export::polars::prelude::*;
 
 use mongodb::bson::{Bson, Document};
 
@@ -37,7 +37,7 @@ impl From<&Bson> for Wrap<DataType> {
             Bson::String(_) => DataType::Utf8,
 
             Bson::Array(arr) => {
-                use polars::frame::row::coerce_data_type;
+                use nodejs_polars::export::polars::frame::row::coerce_data_type;
 
                 let dtypes: Vec<_> = arr
                     .iter()
@@ -46,9 +46,11 @@ impl From<&Bson> for Wrap<DataType> {
                         dt.0
                     })
                     .collect();
-
-                let dtype = coerce_data_type(&dtypes);
-
+                let dtype = if dtypes.is_empty() {
+                    DataType::Null
+                } else {
+                    coerce_data_type(&dtypes)
+                };
                 DataType::List(Box::new(dtype))
             }
             Bson::Boolean(_) => DataType::Boolean,

@@ -1,2 +1,3 @@
 pub use crate::{MongoLazyReader, MongoScan, MongoScanOptions};
-pub use polars::prelude::*;
+pub use nodejs_polars::export::polars::prelude::*;
+

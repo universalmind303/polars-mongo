@@ -4,21 +4,22 @@ mod bson;
 mod conversion;
 pub mod prelude;
 
-use napi::bindgen_prelude::{External, Result as JsResult};
+use napi::bindgen_prelude::Result as JsResult;
+use nodejs_polars::export::JsLazyFrame;
 
 use crate::bson::buffer::*;
 
 use conversion::Wrap;
-use polars::export::rayon::prelude::*;
-use polars::{frame::row::*, prelude::*};
-use polars_core::POOL;
+use nodejs_polars::export::polars::export::rayon::prelude::*;
+use nodejs_polars::export::polars::{frame::row::*, prelude::*};
+use nodejs_polars::export::polars_core::POOL;
 
 use mongodb::{
     bson::{Bson, Document},
     options::{ClientOptions, FindOptions},
     sync::{Client, Collection, Cursor},
 };
-use polars_core::utils::accumulate_dataframes_vertical;
+use nodejs_polars::export::polars_core::utils::accumulate_dataframes_vertical;
 
 #[macro_use]
 extern crate napi_derive;
@@ -38,8 +39,8 @@ impl MongoScan {
         self.rechunk = rechunk;
         self
     }
-    pub fn with_batch_size(mut self, batch_size: usize) -> Self {
-        self.batch_size = Some(batch_size);
+    pub fn with_batch_size(mut self, batch_size: Option<usize>) -> Self {
+        self.batch_size = batch_size;
         self
     }
 
@@ -58,7 +59,6 @@ impl MongoScan {
     }
 
     fn get_collection(&self) -> Collection<Document> {
-        println!("get_collection");
         let client = Client::with_options(self.client_options.clone()).unwrap();
         let database = client.database(&self.db);
         database.collection::<Document>(&self.collection_name)
@@ -81,8 +81,6 @@ impl MongoScan {
 
 impl AnonymousScan for MongoScan {
     fn scan(&self, scan_opts: AnonymousScanOptions) -> Result<DataFrame> {
-        println!("AnonymousScan::scan");
-
         let collection = &self.get_collection();
 
         let projection = scan_opts.output_schema.clone().map(|schema| {
@@ -104,7 +102,11 @@ impl AnonymousScan for MongoScan {
             .n_rows
             .unwrap_or_else(|| collection.estimated_document_count(None).unwrap() as usize);
 
-        let n_threads = self.n_threads.unwrap_or_else(|| POOL.current_num_threads());
+        let mut n_threads = self.n_threads.unwrap_or_else(|| POOL.current_num_threads());
+
+        if n_rows < 128 {
+            n_threads = 1
+        }
 
         let rows_per_thread = n_rows / n_threads;
 
@@ -118,7 +120,6 @@ impl AnonymousScan for MongoScan {
 
                     find_options.skip = Some(start as u64);
                     find_options.limit = Some(rows_per_thread as i64);
-
                     let cursor = collection.find(None, Some(find_options));
                     let mut buffers = init_buffers(schema.as_ref(), rows_per_thread)?;
 
@@ -143,23 +144,15 @@ impl AnonymousScan for MongoScan {
     }
 
     fn schema(&self, infer_schema_length: Option<usize>) -> Result<Schema> {
-        let now = std::time::Instant::now();
-        println!("infer_schema_length = {:#?}", infer_schema_length);
-        println!("AnonymousScan::schema {:#?}", now.elapsed());
-
         let collection = self.get_collection();
-        println!("Done getting collection {:#?}", now.elapsed());
 
         let infer_options = FindOptions::builder()
             .limit(infer_schema_length.map(|i| i as i64))
             .build();
 
-        println!("start cursor: {:#?}", now.elapsed());
-
         let res = collection
             .find(None, Some(infer_options))
             .map_err(|err| PolarsError::ComputeError(format!("{:#?}", err).into()))?;
-
         let iter = res.map(|doc| {
             let val = doc.unwrap();
             let v = val.into_iter().map(|(key, value)| {
@@ -168,14 +161,7 @@ impl AnonymousScan for MongoScan {
             });
             v.collect()
         });
-
-        println!("end cursor:  {:#?}", now.elapsed());
-        println!("start infer_schema: {:#?}", now.elapsed());
-
-        let schema = infer_schema(iter, infer_schema_length.unwrap_or(1000));
-        println!("end infer_schema: {:#?}", now.elapsed());
-        println!("schema = {:#?}", schema);
-
+        let schema = infer_schema(iter, infer_schema_length.unwrap_or(100));
         Ok(schema)
     }
 
@@ -190,6 +176,7 @@ impl AnonymousScan for MongoScan {
     }
 }
 
+#[derive(Debug)]
 #[napi(object)]
 pub struct MongoScanOptions {
     pub connection_str: String,
@@ -197,6 +184,7 @@ pub struct MongoScanOptions {
     pub collection: String,
     pub infer_schema_length: Option<i64>,
     pub n_rows: Option<i64>,
+    pub batch_size: Option<i64>,
 }
 
 pub trait MongoLazyReader {
@@ -209,6 +197,7 @@ pub trait MongoLazyReader {
             name: "MONGO SCAN",
             infer_schema_length: options.infer_schema_length.map(|l| l as usize),
             n_rows: options.n_rows.map(|l| l as usize),
+
             ..ScanArgsAnonymous::default()
         };
 
@@ -219,18 +208,22 @@ pub trait MongoLazyReader {
 impl MongoLazyReader for LazyFrame {}
 
 #[napi]
-pub fn scan_mongo_collection(options: MongoScanOptions) -> JsResult<External<LazyFrame>> {
+pub fn scan_mongo(options: MongoScanOptions) -> JsResult<JsLazyFrame> {
     let f = MongoScan::new(options.connection_str, options.db, options.collection)
-        .map_err(|e| napi::Error::from_reason(format!("{:#?}", e)))?;
+        .map_err(|e| napi::Error::from_reason(format!("{:#?}", e)))?
+        .with_batch_size(options.batch_size.map(|i| i as usize));
 
     let args = ScanArgsAnonymous {
         name: "MONGO SCAN",
         infer_schema_length: options.infer_schema_length.map(|i| i as usize),
+        n_rows: options.n_rows.map(|i| i as usize),
         ..ScanArgsAnonymous::default()
     };
 
-    let lf = LazyFrame::anonymous_scan(Arc::new(f), args)
+    let lf: nodejs_polars::export::LazyFrame = LazyFrame::anonymous_scan(Arc::new(f), args)
         .map_err(|e| napi::Error::from_reason(format!("{:#?}", e)))?;
 
-    Ok(External::new(lf))
+    let ldf: JsLazyFrame = lf.into();
+
+    Ok(ldf)
 }

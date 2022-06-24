@@ -1,11 +1,11 @@
 use crate::conversion::*;
 use mongodb::bson::Bson;
 use num::traits::NumCast;
-use polars::export::arrow::types::NativeType;
-use polars::prelude::*;
+use nodejs_polars::export::polars::export::arrow::types::NativeType;
+use nodejs_polars::export::polars::prelude::*;
 
 pub(crate) fn init_buffers(
-    schema: &polars::prelude::Schema,
+    schema: &nodejs_polars::export::polars::prelude::Schema,
     capacity: usize,
 ) -> Result<PlIndexMap<String, Buffer>> {
     schema

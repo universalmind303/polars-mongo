@@ -1,28 +1,22 @@
 #![deny(clippy::all)]
 
-mod bson;
+mod buffer;
 mod conversion;
 pub mod prelude;
 
-use napi::bindgen_prelude::Result as JsResult;
-use nodejs_polars::export::JsLazyFrame;
-
-use crate::bson::buffer::*;
+use crate::buffer::*;
 
 use conversion::Wrap;
-use nodejs_polars::export::polars::export::rayon::prelude::*;
-use nodejs_polars::export::polars::{frame::row::*, prelude::*};
-use nodejs_polars::export::polars_core::POOL;
+use polars::export::rayon::prelude::*;
+use polars::{frame::row::*, prelude::*};
+use polars_core::POOL;
 
 use mongodb::{
     bson::{Bson, Document},
     options::{ClientOptions, FindOptions},
     sync::{Client, Collection, Cursor},
 };
-use nodejs_polars::export::polars_core::utils::accumulate_dataframes_vertical;
-
-#[macro_use]
-extern crate napi_derive;
+use polars_core::utils::accumulate_dataframes_vertical;
 
 pub struct MongoScan {
     client_options: ClientOptions,
@@ -45,7 +39,9 @@ impl MongoScan {
     }
 
     pub fn new(connection_str: String, db: String, collection: String) -> Result<Self> {
-        let client_options = ClientOptions::parse(connection_str).unwrap();
+        let client_options = ClientOptions::parse(connection_str).map_err(|e| {
+            PolarsError::InvalidOperation(format!("unable to connect to mongodb: {}", e).into())
+        })?;
 
         Ok(MongoScan {
             client_options,
@@ -60,6 +56,8 @@ impl MongoScan {
 
     fn get_collection(&self) -> Collection<Document> {
         let client = Client::with_options(self.client_options.clone()).unwrap();
+        
+
         let database = client.database(&self.db);
         database.collection::<Document>(&self.collection_name)
     }
@@ -71,7 +69,7 @@ impl MongoScan {
     ) -> mongodb::error::Result<()> {
         while let Some(Ok(doc)) = cursor.next() {
             buffers.iter_mut().for_each(|(s, inner)| match doc.get(s) {
-                Some(v) => inner.add(v).expect("inner.add(v)"),
+                Some(v) => inner.add(v).expect("was not able to add to buffer."),
                 None => inner.add_null(),
             });
         }
@@ -177,26 +175,29 @@ impl AnonymousScan for MongoScan {
 }
 
 #[derive(Debug)]
-#[napi(object)]
 pub struct MongoScanOptions {
+    /// mongodb style connection string. `mongodb://<user>:<password>@host.domain`
     pub connection_str: String,
+    /// the name of the mongodb database
     pub db: String,
+    /// the name of the mongodb collection
     pub collection: String,
-    pub infer_schema_length: Option<i64>,
-    pub n_rows: Option<i64>,
-    pub batch_size: Option<i64>,
+    // Number of rows used to infer the schema. Defaults to `100` if not provided.
+    pub infer_schema_length: Option<usize>,
+    /// Number of rows to return from mongodb collection. If not provided, it will fetch all rows from collection.
+    pub n_rows: Option<usize>,
+    /// determines the number of records to return from a single request to mongodb
+    pub batch_size: Option<usize>,
 }
 
 pub trait MongoLazyReader {
-    /// Example
-    /// scans a mongo collection into a lazyframe.
     fn scan_mongo_collection(options: MongoScanOptions) -> Result<LazyFrame> {
         let f = MongoScan::new(options.connection_str, options.db, options.collection)?;
 
         let args = ScanArgsAnonymous {
             name: "MONGO SCAN",
-            infer_schema_length: options.infer_schema_length.map(|l| l as usize),
-            n_rows: options.n_rows.map(|l| l as usize),
+            infer_schema_length: options.infer_schema_length,
+            n_rows: options.n_rows,
 
             ..ScanArgsAnonymous::default()
         };
@@ -206,24 +207,3 @@ pub trait MongoLazyReader {
 }
 
 impl MongoLazyReader for LazyFrame {}
-
-#[napi]
-pub fn scan_mongo(options: MongoScanOptions) -> JsResult<JsLazyFrame> {
-    let f = MongoScan::new(options.connection_str, options.db, options.collection)
-        .map_err(|e| napi::Error::from_reason(format!("{:#?}", e)))?
-        .with_batch_size(options.batch_size.map(|i| i as usize));
-
-    let args = ScanArgsAnonymous {
-        name: "MONGO SCAN",
-        infer_schema_length: options.infer_schema_length.map(|i| i as usize),
-        n_rows: options.n_rows.map(|i| i as usize),
-        ..ScanArgsAnonymous::default()
-    };
-
-    let lf: nodejs_polars::export::LazyFrame = LazyFrame::anonymous_scan(Arc::new(f), args)
-        .map_err(|e| napi::Error::from_reason(format!("{:#?}", e)))?;
-
-    let ldf: JsLazyFrame = lf.into();
-
-    Ok(ldf)
-}

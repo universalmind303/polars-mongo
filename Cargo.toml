@@ -8,26 +8,31 @@ keywords = ["dataframe", "query-engine", "arrow", "polars", "mongo", "mongodb"]
 description = "Connector to read polars dataframes from mongodb collections"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["lib"]
 
 [dependencies]
-polars-time = "0.21.1"
 num = "^0.4"
-napi = "2.5.0"
-napi-derive = "2.5.0"
+polars-time = "0.22"
+polars-core = "0.22"
+
+
 [dependencies.mongodb]
 version = "2.2.1"
 default-features = false
 features = ["sync"]
 
-[dependencies.nodejs-polars]
-git = "https://github.com/pola-rs/polars.git"
-branch = "master"
 
-[build-dependencies]
-napi-build = "2.0.1"
+[dependencies.polars]
+version = "0.22"
+features = ["lazy", "dtype-full"]
+
 
 
 [profile.release]
 codegen-units = 1
 lto = "fat"
+
+[workspace]
+members = [
+  "examples/read_collection"
+]

@@ -1,4 +1,4 @@
-use nodejs_polars::export::polars::prelude::*;
+use polars::prelude::*;
 
 use mongodb::bson::{Bson, Document};
 
@@ -37,7 +37,7 @@ impl From<&Bson> for Wrap<DataType> {
             Bson::String(_) => DataType::Utf8,
 
             Bson::Array(arr) => {
-                use nodejs_polars::export::polars::frame::row::coerce_data_type;
+                use polars::frame::row::coerce_data_type;
 
                 let dtypes: Vec<_> = arr
                     .iter()

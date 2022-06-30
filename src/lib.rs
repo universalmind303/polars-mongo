@@ -1,5 +1,5 @@
 #![deny(clippy::all)]
-#[cfg(feature = "serde")]
+#[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
 mod buffer;
 mod conversion;
@@ -175,7 +175,7 @@ impl AnonymousScan for MongoScan {
 }
 
 #[derive(Debug)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct MongoScanOptions {
     /// mongodb style connection string. `mongodb://<user>:<password>@host.domain`
     pub connection_str: String,

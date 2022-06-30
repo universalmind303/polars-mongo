@@ -11,14 +11,14 @@ description = "Connector to read polars dataframes from mongodb collections"
 crate-type = ["lib"]
 
 [features]
-serde = ["serde_lib", "serde_json"]
+serialize = ["serde", "serde_json"]
 
 
 [dependencies]
 num = "^0.4"
 polars-time = "0.22"
 polars-core = "0.22"
-serde_lib = {package = "serde", version = "1.0.137", features = ["derive", "rc"], optional = true}
+serde = {version = "1.0.137", features = ["derive", "rc"], optional = true}
 serde_json = {version = "1.0.81", optional = true} 
 
 [dependencies.mongodb]

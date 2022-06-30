@@ -1,5 +1,6 @@
 #![deny(clippy::all)]
-
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 mod buffer;
 mod conversion;
 pub mod prelude;
@@ -56,7 +57,6 @@ impl MongoScan {
 
     fn get_collection(&self) -> Collection<Document> {
         let client = Client::with_options(self.client_options.clone()).unwrap();
-        
 
         let database = client.database(&self.db);
         database.collection::<Document>(&self.collection_name)
@@ -175,6 +175,7 @@ impl AnonymousScan for MongoScan {
 }
 
 #[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct MongoScanOptions {
     /// mongodb style connection string. `mongodb://<user>:<password>@host.domain`
     pub connection_str: String,

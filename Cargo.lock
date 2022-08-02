@@ -1381,7 +1381,6 @@ dependencies = [
  "polars-core",
  "polars-time",
  "serde",
- "serde_json",
 ]
 
 [[package]]

@@ -24,7 +24,7 @@ features = ["sync"]
 
 
 [dependencies.polars]
-version = "0.22"
+version = "0.23.1"
 features = ["lazy", "dtype-full"]
 
 

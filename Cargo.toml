@@ -13,8 +13,8 @@ crate-type = ["lib"]
 
 [dependencies]
 num = "^0.4"
-polars-time = "0.22"
-polars-core = "0.22"
+polars-time = "0.23.1"
+polars-core = "0.23.1"
 serde = {version = "1.0.137", features = ["derive", "rc"], optional = true}
 
 [dependencies.mongodb]

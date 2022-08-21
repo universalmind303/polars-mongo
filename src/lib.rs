@@ -200,7 +200,7 @@ impl AnonymousScan for MongoScan {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct MongoScanOptions {
     /// mongodb style connection string. `mongodb://<user>:<password>@host.domain`
@@ -217,24 +217,6 @@ pub struct MongoScanOptions {
     pub batch_size: Option<usize>,
 }
 
-/// This trait is the main entrypoint for `polars-mongo`
-/// It extends [`LazyFrame`] to have a single new method: `scan_mongo_collection`
-///
-/// ```rust #[no_run]
-///
-/// let options = MongoScanOptions {
-///     connection_str: "mongodb://user:pass@my-database.co",
-///     db: "test",
-///     collection: "collection_1",
-///     infer_schema_length: Some(1000),
-///     ..Default::default()
-/// };
-///
-/// let lf = LazyFrame::scan_mongo_collection(options)?;
-/// let df = lf.collect()?;
-/// dbg!(df);
-///
-/// ```
 pub trait MongoLazyReader {
     fn scan_mongo_collection(options: MongoScanOptions) -> Result<LazyFrame> {
         let f = MongoScan::new(options.connection_str, options.db, options.collection)?;

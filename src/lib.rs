@@ -1,14 +1,14 @@
 //! Polars mongo is a connector to read from a mongodb collection into a Polars dataframe.
-//! Usage: 
+//! Usage:
 //! ```rust
 //! use polars::prelude::*;
 //! use polars_mongo::prelude::*;
-//! 
+//!
 //! pub fn main() -> Result<()> {
 //!     let connection_str = std::env::var("POLARS_MONGO_CONNECTION_URI").unwrap();
 //!     let db = std::env::var("POLARS_MONGO_DB").unwrap();
 //!     let collection = std::env::var("POLARS_MONGO_COLLECTION").unwrap();
-//! 
+//!
 //!     let df = LazyFrame::scan_mongo_collection(MongoScanOptions {
 //!         batch_size: None,
 //!         connection_str,
@@ -18,11 +18,11 @@
 //!         n_rows: None,
 //!     })?
 //!     .collect()?;
-//! 
+//!
 //!     dbg!(df);
 //!     Ok(())
 //! }
-//! 
+//!
 #![deny(clippy::all)]
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};

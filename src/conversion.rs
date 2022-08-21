@@ -1,4 +1,3 @@
-
 use polars::prelude::*;
 
 use mongodb::bson::{Bson, Document};

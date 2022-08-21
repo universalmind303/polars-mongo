@@ -1,5 +1,5 @@
-use polars_mongo::prelude::*;
 use polars::prelude::*;
+use polars_mongo::prelude::*;
 
 pub fn main() -> Result<()> {
     let connection_str = std::env::var("POLARS_MONGO_CONNECTION_URI").unwrap();

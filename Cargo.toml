@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 authors = ["universalmind303 <cory.grinstead@gmail.com>"]
 license = "MIT"
-keywords = ["dataframe", "query-engine", "arrow", "polars", "mongo", "mongodb", "database"]
+keywords = ["dataframe", "query-engine", "arrow", "polars", "database"]
 description = "Connector to read polars dataframes from mongodb collections"
 repository = "https://github.com/universalmind303/polars-mongo/"
 

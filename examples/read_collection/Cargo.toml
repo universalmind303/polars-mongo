@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 polars-mongo = { path = "../.."}
-polars = "0.22.8"
+polars = {version = "0.22.8", features = ["lazy"]}

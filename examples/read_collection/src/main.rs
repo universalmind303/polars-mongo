@@ -1,4 +1,5 @@
 use polars_mongo::prelude::*;
+use polars::prelude::*;
 
 pub fn main() -> Result<()> {
     let connection_str = std::env::var("POLARS_MONGO_CONNECTION_URI").unwrap();
@@ -6,12 +7,12 @@ pub fn main() -> Result<()> {
     let collection = std::env::var("POLARS_MONGO_COLLECTION").unwrap();
 
     let df = LazyFrame::scan_mongo_collection(MongoScanOptions {
-        batch_size: Some(2000),
+        batch_size: None,
         connection_str,
         db,
         collection,
-        infer_schema_length: Some(100),
-        n_rows: Some(20000),
+        infer_schema_length: Some(1000),
+        n_rows: None,
     })?
     .collect()?;
 

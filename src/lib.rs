@@ -1,5 +1,30 @@
+//! Polars mongo is a connector to read from a mongodb collection into a Polars dataframe.
+//! Usage: 
+//! ```rust
+//! use polars::prelude::*;
+//! use polars_mongo::prelude::*;
+//! 
+//! pub fn main() -> Result<()> {
+//!     let connection_str = std::env::var("POLARS_MONGO_CONNECTION_URI").unwrap();
+//!     let db = std::env::var("POLARS_MONGO_DB").unwrap();
+//!     let collection = std::env::var("POLARS_MONGO_COLLECTION").unwrap();
+//! 
+//!     let df = LazyFrame::scan_mongo_collection(MongoScanOptions {
+//!         batch_size: None,
+//!         connection_str,
+//!         db,
+//!         collection,
+//!         infer_schema_length: Some(1000),
+//!         n_rows: None,
+//!     })?
+//!     .collect()?;
+//! 
+//!     dbg!(df);
+//!     Ok(())
+//! }
+//! 
 #![deny(clippy::all)]
-#[cfg(feature = "serialize")]
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 mod buffer;
 mod conversion;
@@ -153,11 +178,12 @@ impl AnonymousScan for MongoScan {
             .map_err(|err| PolarsError::ComputeError(format!("{:#?}", err).into()))?;
         let iter = res.map(|doc| {
             let val = doc.unwrap();
-            let v = val.into_iter().map(|(key, value)| {
-                let dtype: Wrap<DataType> = (&value).into();
-                (key, dtype.0)
-            });
-            v.collect()
+            val.into_iter()
+                .map(|(key, value)| {
+                    let dtype = Wrap::<DataType>::from(&value);
+                    (key, dtype.0)
+                })
+                .collect()
         });
         let schema = infer_schema(iter, infer_schema_length.unwrap_or(100));
         Ok(schema)
@@ -175,7 +201,7 @@ impl AnonymousScan for MongoScan {
 }
 
 #[derive(Debug)]
-#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct MongoScanOptions {
     /// mongodb style connection string. `mongodb://<user>:<password>@host.domain`
     pub connection_str: String,
@@ -191,6 +217,24 @@ pub struct MongoScanOptions {
     pub batch_size: Option<usize>,
 }
 
+/// This trait is the main entrypoint for `polars-mongo`
+/// It extends [`LazyFrame`] to have a single new method: `scan_mongo_collection`
+///
+/// ```rust #[no_run]
+///
+/// let options = MongoScanOptions {
+///     connection_str: "mongodb://user:pass@my-database.co",
+///     db: "test",
+///     collection: "collection_1",
+///     infer_schema_length: Some(1000),
+///     ..Default::default()
+/// };
+///
+/// let lf = LazyFrame::scan_mongo_collection(options)?;
+/// let df = lf.collect()?;
+/// dbg!(df);
+///
+/// ```
 pub trait MongoLazyReader {
     fn scan_mongo_collection(options: MongoScanOptions) -> Result<LazyFrame> {
         let f = MongoScan::new(options.connection_str, options.db, options.collection)?;
@@ -199,7 +243,6 @@ pub trait MongoLazyReader {
             name: "MONGO SCAN",
             infer_schema_length: options.infer_schema_length,
             n_rows: options.n_rows,
-
             ..ScanArgsAnonymous::default()
         };
 

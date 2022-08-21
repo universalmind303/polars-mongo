@@ -1381,7 +1381,6 @@ dependencies = [
  "polars-core",
  "polars-time",
  "serde",
- "serde_json",
 ]
 
 [[package]]
@@ -1528,6 +1527,7 @@ dependencies = [
 name = "read_mongo"
 version = "0.1.0"
 dependencies = [
+ "polars",
  "polars-mongo",
 ]
 

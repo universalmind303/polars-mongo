@@ -4,22 +4,19 @@ version = "0.1.0"
 edition = "2021"
 authors = ["universalmind303 <cory.grinstead@gmail.com>"]
 license = "MIT"
-keywords = ["dataframe", "query-engine", "arrow", "polars", "mongo", "mongodb"]
+keywords = ["dataframe", "query-engine", "arrow", "polars", "mongo", "mongodb", "database"]
 description = "Connector to read polars dataframes from mongodb collections"
+repository = "https://github.com/universalmind303/polars-mongo/"
 
 [lib]
 crate-type = ["lib"]
 
-[features]
-serialize = ["serde", "serde_json"]
-
 
 [dependencies]
 num = "^0.4"
-polars-time = "0.22"
-polars-core = "0.22"
+polars-time = "0.22.7"
+polars-core = "0.22.7"
 serde = {version = "1.0.137", features = ["derive", "rc"], optional = true}
-serde_json = {version = "1.0.81", optional = true} 
 
 [dependencies.mongodb]
 version = "2.2.1"
@@ -28,13 +25,12 @@ features = ["sync"]
 
 
 [dependencies.polars]
-version = "0.22"
+version = "0.22.8"
 features = ["lazy", "dtype-full"]
 
 
 
 [profile.release]
-codegen-units = 1
 lto = "fat"
 
 [workspace]

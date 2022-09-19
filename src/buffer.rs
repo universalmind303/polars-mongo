@@ -7,7 +7,7 @@ use polars::prelude::*;
 pub(crate) fn init_buffers(
     schema: &polars::prelude::Schema,
     capacity: usize,
-) -> Result<PlIndexMap<String, Buffer>> {
+) -> PolarsResult<PlIndexMap<String, Buffer>> {
     schema
         .iter()
         .map(|(name, dtype)| {
@@ -49,7 +49,7 @@ pub(crate) enum Buffer<'a> {
 }
 
 impl<'a> Buffer<'a> {
-    pub(crate) fn into_series(self) -> Result<Series> {
+    pub(crate) fn into_series(self) -> PolarsResult<Series> {
         let s = match self {
             Buffer::Boolean(v) => v.finish().into_series(),
             Buffer::Int32(v) => v.finish().into_series(),
@@ -85,7 +85,7 @@ impl<'a> Buffer<'a> {
             Buffer::All((v, _)) => v.push(AnyValue::Null),
         };
     }
-    pub(crate) fn add(&mut self, value: &Bson) -> Result<()> {
+    pub(crate) fn add(&mut self, value: &Bson) -> PolarsResult<()> {
         use Buffer::*;
         match self {
             Boolean(buf) => {

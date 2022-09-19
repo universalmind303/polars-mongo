@@ -1,7 +1,7 @@
 use polars::prelude::*;
 use polars_mongo::prelude::*;
 
-pub fn main() -> Result<()> {
+pub fn main() -> PolarsResult<()> {
     let connection_str = std::env::var("POLARS_MONGO_CONNECTION_URI").unwrap();
     let db = std::env::var("POLARS_MONGO_DB").unwrap();
     let collection = std::env::var("POLARS_MONGO_COLLECTION").unwrap();

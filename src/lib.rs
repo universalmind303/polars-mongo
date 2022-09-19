@@ -4,7 +4,7 @@
 //! use polars::prelude::*;
 //! use polars_mongo::prelude::*;
 //!
-//! pub fn main() -> Result<()> {
+//! pub fn main() -> PolarsResult<()> {
 //!     let connection_str = std::env::var("POLARS_MONGO_CONNECTION_URI").unwrap();
 //!     let db = std::env::var("POLARS_MONGO_DB").unwrap();
 //!     let collection = std::env::var("POLARS_MONGO_COLLECTION").unwrap();
@@ -64,7 +64,7 @@ impl MongoScan {
         self
     }
 
-    pub fn new(connection_str: String, db: String, collection: String) -> Result<Self> {
+    pub fn new(connection_str: String, db: String, collection: String) -> PolarsResult<Self> {
         let client_options = ClientOptions::parse(connection_str).map_err(|e| {
             PolarsError::InvalidOperation(format!("unable to connect to mongodb: {}", e).into())
         })?;
@@ -103,7 +103,7 @@ impl MongoScan {
 }
 
 impl AnonymousScan for MongoScan {
-    fn scan(&self, scan_opts: AnonymousScanOptions) -> Result<DataFrame> {
+    fn scan(&self, scan_opts: AnonymousScanOptions) -> PolarsResult<DataFrame> {
         let collection = &self.get_collection();
 
         let projection = scan_opts.output_schema.clone().map(|schema| {
@@ -153,10 +153,10 @@ impl AnonymousScan for MongoScan {
                         buffers
                             .into_values()
                             .map(|buf| buf.into_series())
-                            .collect::<Result<_>>()?,
+                            .collect::<PolarsResult<_>>()?,
                     )
                 })
-                .collect::<Result<Vec<_>>>()
+                .collect::<PolarsResult<Vec<_>>>()
         })?;
         let mut df = accumulate_dataframes_vertical(dfs)?;
 
@@ -166,7 +166,7 @@ impl AnonymousScan for MongoScan {
         Ok(df)
     }
 
-    fn schema(&self, infer_schema_length: Option<usize>) -> Result<Schema> {
+    fn schema(&self, infer_schema_length: Option<usize>) -> PolarsResult<Schema> {
         let collection = self.get_collection();
 
         let infer_options = FindOptions::builder()
@@ -218,7 +218,7 @@ pub struct MongoScanOptions {
 }
 
 pub trait MongoLazyReader {
-    fn scan_mongo_collection(options: MongoScanOptions) -> Result<LazyFrame> {
+    fn scan_mongo_collection(options: MongoScanOptions) -> PolarsResult<LazyFrame> {
         let f = MongoScan::new(options.connection_str, options.db, options.collection)?;
 
         let args = ScanArgsAnonymous {
